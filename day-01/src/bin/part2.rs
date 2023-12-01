@@ -29,9 +29,20 @@ fn part2(input: &str) -> String {
     let replace_with = &["1", "2", "3", "4", "5", "6", "7", "8", "9"];
     
     let ac = AhoCorasick::new(patterns).unwrap();
-    let result = ac.replace_all(input, replace_with);
-    
-    // let _ = write("replaced_input.txt", result.clone());
+    let matches = ac  // replace_all(input, replace_with);
+	.find_overlapping_iter(&input);
+
+    let mut result = input.to_owned();
+    let mut usize_offset = 0;
+    for mat in matches {
+	let start = mat.start() + usize_offset;
+	usize_offset += replace_with[mat.pattern()].len();
+	result.insert_str(
+	    start,
+	    replace_with[mat.pattern()]
+	);
+    }
+
     return format!("{}", part1(&result))
 }
 
@@ -39,10 +50,11 @@ fn part2(input: &str) -> String {
 mod tests {
     use super::*;
 
+    #[test]
     fn part1_works() {
 	assert_eq!(true, true)
     }
-
+    #[test]
     fn part2_works() {
 	assert_eq!("281", part2("two1nine
 eightwothree

@@ -35,6 +35,20 @@ impl<'a> Game<'a> {
             .not()
             .then_some(self.id.parse::<u32>().expect("game id should be a parsable u32",))
     }
+
+    fn minimum_cube_set(&self) -> u32 {
+        let map: BTreeMap<&str, u32> = BTreeMap::new();
+        self.rounds.iter().fold(map, |mut acc, round| {
+           for cube in round.iter() {
+               acc.entry(cube.color).and_modify(|v| {
+                   *v = (*v).max(cube.amount);
+               }).or_insert(cube.amount);
+            }
+           acc
+        })
+        .values()
+        .product()
+    }
 }
 
 fn cube(input: &str) -> IResult<&str, Cube> {
@@ -65,27 +79,20 @@ fn parse_games(input: &str) -> IResult<&str, Vec<Game>> {
     Ok((input, games))
 }
 
-fn part1(input: &str) -> String {
-    let map = BTreeMap::from([
-        ("red", 12),
-        ("green", 13),
-        ("blue", 14),
-        ]);
+fn part2(input: &str) -> String {
     let games = parse_games(input).expect("should parse");
+
     games
         .1
         .iter()
-        .filter_map(|game| game.valid_for_cube_set(&map))
+        .map(|game| game.minimum_cube_set())
         .sum::<u32>()
         .to_string()
-//    games.1.iter().filter_map(|game| game.valid_for_cube_set(&map).sum::<u32>().to_string())
-//    dbg!(games);
-//    "".to_string()
 }
 
 fn main() {
    let input = include_str!("./input.txt");
-   let output = part1(input);
+   let output = part2(input);
    println!("{output}")
 }
 
@@ -94,8 +101,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn part1_works() {
-        let result = part1("Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+    fn part2_works() {
+        let result = part2("Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
 Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
 Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
